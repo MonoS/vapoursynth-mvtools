@@ -159,6 +159,137 @@ void Degrain_sse2(uint8_t *pDst, int nDstPitch, const uint8_t *pSrc, int nSrcPit
     }
 }
 
+template <int radius, int blockWidth, int blockHeight>
+void Degrain_AVX2(uint8_t *pDst, int nDstPitch, const uint8_t *pSrc, int nSrcPitch, const uint8_t **pRefs, const int *nRefPitches, int WSrc, const int *WRefs)
+{
+    __m256i zero = _mm256_set1_epi32(0);
+    __m128i zero128 = _mm_setzero_si128();
+
+	__m256i wsrc = _mm256_set1_epi32(WSrc);
+
+    __m256i wrefs[6];
+    wrefs[0] = _mm256_set1_epi32(WRefs[0]);
+    wrefs[1] = _mm256_set1_epi32(WRefs[1]);
+
+    if (radius > 1)
+    {
+        wrefs[2] = _mm256_set1_epi32(WRefs[2]);
+        wrefs[3] = _mm256_set1_epi32(WRefs[3]);
+    }
+    if (radius > 2)
+    {
+        wrefs[4] = _mm256_set1_epi32(WRefs[4]);
+        wrefs[5] = _mm256_set1_epi32(WRefs[5]);
+    }
+    __m256i src, refs[6];
+
+    for (int y = 0; y < blockHeight; y++)
+    {
+        for (int x = 0; x < blockWidth; x += 8)
+        {
+            if (blockWidth == 4)
+            {
+                src     = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pSrc));
+                refs[0] = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pRefs[0]));
+                refs[1] = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pRefs[1]));
+                if (radius > 1)
+                {
+                    refs[2] = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pRefs[2]));
+                    refs[3] = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pRefs[3]));
+                }
+                if (radius > 2)
+                {
+                    refs[4] = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pRefs[4]));
+                    refs[5] = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pRefs[5]));
+                }
+            }
+            else
+            {
+                src     = _mm256_loadl_epi128((const __m128i *)(pSrc + x));
+                refs[0] = _mm256_loadl_epi128((const __m128i *)(pRefs[0] + x));
+                refs[1] = _mm256_loadl_epi128((const __m128i *)(pRefs[1] + x));
+                if (radius > 1)
+                {
+                    refs[2] = _mm256_loadl_epi128((const __m128i *)(pRefs[2] + x));
+                    refs[3] = _mm256_loadl_epi128((const __m128i *)(pRefs[3] + x));
+                }
+                if (radius > 2)
+                {
+                    refs[4] = _mm256_loadl_epi128((const __m128i *)(pRefs[4] + x));
+                    refs[5] = _mm256_loadl_epi128((const __m128i *)(pRefs[5] + x));
+                }
+            }
+
+
+            src     = _mm256_unpacklo_epi16(src, zero);
+            refs[0] = _mm256_unpacklo_epi16(refs[0], zero);
+            refs[1] = _mm256_unpacklo_epi16(refs[1], zero);
+            if (radius > 1)
+            {
+                refs[2] = _mm256_unpacklo_epi16(refs[2], zero);
+                refs[3] = _mm256_unpacklo_epi16(refs[3], zero);
+            }
+            if (radius > 2)
+            {
+                refs[4] = _mm256_unpacklo_epi16(refs[4], zero);
+                refs[5] = _mm256_unpacklo_epi16(refs[5], zero);
+            }
+
+
+            src = _mm256_mullo_epi32(src, wsrc);
+            refs[0] = _mm256_mullo_epi32(refs[0], wrefs[0]);
+            refs[1] = _mm256_mullo_epi32(refs[1], wrefs[1]);
+            if (radius > 1)
+            {
+                refs[2] = _mm256_mullo_epi32(refs[2], wrefs[2]);
+                refs[3] = _mm256_mullo_epi32(refs[3], wrefs[3]);
+            }
+            if (radius > 2)
+            {
+                refs[4] = _mm256_mullo_epi32(refs[4], wrefs[4]);
+                refs[5] = _mm256_mullo_epi32(refs[5], wrefs[5]);
+            }
+
+            __m256i accum = _mm256_set1_epi32(128);
+            accum = _mm256_add_epi32(accum, src);
+            accum = _mm256_add_epi32(accum, refs[0]);
+            accum = _mm256_add_epi32(accum, refs[1]);
+            if (radius > 1)
+            {
+                accum = _mm256_add_epi32(accum, refs[2]);
+                accum = _mm256_add_epi32(accum, refs[3]);
+            }
+            if (radius > 2)
+            {
+                accum = _mm256_add_epi32(accum, refs[4]);
+                accum = _mm256_add_epi32(accum, refs[5]);
+            }
+
+            accum = _mm256_srli_epi32(accum, 8);
+            accum = _mm_packus_epi16(accum, zero);
+            if (blockWidth == 4)
+                *(int64_t *)pDst = _mm256_extract_epi64(accum, 1);
+            else
+                *(__m128i *)(pDst + x) = _mm256_extracti128_si256(accum, 0);
+        }
+
+        pDst += nDstPitch;
+        pSrc += nSrcPitch;
+        pRefs[0] += nRefPitches[0];
+        pRefs[1] += nRefPitches[1];
+        if (radius > 1)
+        {
+            pRefs[2] += nRefPitches[2];
+            pRefs[3] += nRefPitches[3];
+        }
+        if (radius > 2)
+        {
+            pRefs[4] += nRefPitches[4];
+            pRefs[5] += nRefPitches[5];
+        }
+    }
+}
+
 
 typedef void (*LimitFunction)(uint8_t *pDst, intptr_t nDstPitch, const uint8_t *pSrc, intptr_t nSrcPitch, intptr_t nWidth, intptr_t nHeight, intptr_t nLimit);
 
