@@ -453,10 +453,10 @@ static void selectFunctions(MVDegrainData *d) {
         d->ToPixels = ToPixels<uint16_t, uint8_t>;
     } else {
         overs[2][2] = Overlaps_C<2,2, uint32_t, uint16_t>;
-        degs[2][2] = Degrain_C<radius, 2,2, uint16_t>;
+        degs[2][2] = d->isavx2 ? Degrain_AVX2_2x2<radius> : Degrain_C<radius, 2,2, uint16_t>;
 
         overs[2][4] = Overlaps_C<2,4, uint32_t, uint16_t>;
-        degs[2][4] = Degrain_C<radius, 2,4, uint16_t>;
+        degs[2][4] = d->isavx2 ? Degrain_AVX2_2x4<radius> : Degrain_C<radius, 2,4, uint16_t>;
 
         overs[4][2] = Overlaps_C<4,2, uint32_t, uint16_t>;
         degs[4][2] = d->isavx2 ? Degrain_AVX2<radius, 4, 2> : Degrain_C<radius, 4,2, uint16_t>;
