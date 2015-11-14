@@ -189,18 +189,18 @@ void Degrain_AVX2(uint8_t *pDst, int nDstPitch, const uint8_t *pSrc, int nSrcPit
         {
             if (blockWidth == 4)
             {
-                src     = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pSrc));
-                refs[0] = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pRefs[0]));
-                refs[1] = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pRefs[1]));
+                src     = _mm256_broadcastsi128_si256(_mm_cvtsi64_si128(*(const int *)pSrc));
+                refs[0] = _mm256_broadcastsi128_si256(_mm_cvtsi64_si128(*(const int *)pRefs[0]));
+                refs[1] = _mm256_broadcastsi128_si256(_mm_cvtsi64_si128(*(const int *)pRefs[1]));
                 if (radius > 1)
                 {
-                    refs[2] = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pRefs[2]));
-                    refs[3] = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pRefs[3]));
+                    refs[2] = _mm256_broadcastsi128_si256(_mm_cvtsi64_si128(*(const int *)pRefs[2]));
+                    refs[3] = _mm256_broadcastsi128_si256(_mm_cvtsi64_si128(*(const int *)pRefs[3]));
                 }
                 if (radius > 2)
                 {
-                    refs[4] = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pRefs[4]));
-                    refs[5] = _mm256_broadcastw_epi16(_mm_cvtsi64_si128(*(const int *)pRefs[5]));
+                    refs[4] = _mm256_broadcastsi128_si256(_mm_cvtsi64_si128(*(const int *)pRefs[4]));
+                    refs[5] = _mm256_broadcastsi128_si256(_mm_cvtsi64_si128(*(const int *)pRefs[5]));
                 }
             }
             else
@@ -268,7 +268,7 @@ void Degrain_AVX2(uint8_t *pDst, int nDstPitch, const uint8_t *pSrc, int nSrcPit
             accum = _mm256_srli_epi32(accum, 8);
             accum = _mm_packus_epi16(accum, zero);
             if (blockWidth == 4)
-                *(int64_t *)pDst = _mm256_extract_epi64(accum, 1);
+                *(int64_t *)pDst = _mm256_extract_epi64(accum, 0);
             else
                 *(__m128i *)(pDst + x) = _mm256_extracti128_si256(accum, 0);
         }
