@@ -37,6 +37,11 @@ Differences
 
     * The optimised SAD, SATD, and SSD functions from x264 have been updated to the latest versions (as of September 2014).
 
+* Degrains
+    * AVX2 optimized degrain and overlap function for 16bit input
+    
+    * New parameter "isavx2" to enable the use of AVX2 functions
+
 * Recalculate:
     * Same as Analyse.
 
