@@ -41,6 +41,7 @@ typedef struct {
     int nSCD1;
     int nSCD2;
     bool isse;
+	bool isavx2;
 
     MVClipDicks *mvClips[6];
 
@@ -185,6 +186,7 @@ static const VSFrameRef *VS_CC mvdegrainGetFrame(int n, int activationReason, vo
         const int nBlkX = d->bleh->nBlkX;
         const int nBlkY = d->bleh->nBlkY;
         const bool isse = d->isse;
+		const bool isavx2 = d->isavx2;
         const int YUVplanes = d->YUVplanes;
         const int dstTempPitch = d->dstTempPitch;
         const int *nWidth = d->nWidth;
@@ -554,7 +556,10 @@ static void VS_CC mvdegrainCreate(const VSMap *in, VSMap *out, void *userData, V
     if (err)
         d.isse = 1;
 
-
+	d.isavx2 = !!vsapi->propGetInt(in, "isavx2", 0, &err);
+    if (err)
+        d.isavx2 = 1;
+	
     if (plane < 0 || plane > 4) {
         vsapi->setError(out, (filter + ": plane must be between 0 and 4 (inclusive).").c_str());
         return;
@@ -831,6 +836,7 @@ void mvdegrainsRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
             "thscd1:int:opt;"
             "thscd2:int:opt;"
             "isse:int:opt;"
+			"isavx2:int:opt;"
             , mvdegrainCreate<1>, 0, plugin);
     registerFunc("Degrain2",
             "clip:clip;"
@@ -847,6 +853,7 @@ void mvdegrainsRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
             "thscd1:int:opt;"
             "thscd2:int:opt;"
             "isse:int:opt;"
+			"isavx2:int:opt;"
             , mvdegrainCreate<2>, 0, plugin);
     registerFunc("Degrain3",
             "clip:clip;"
@@ -865,5 +872,6 @@ void mvdegrainsRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
             "thscd1:int:opt;"
             "thscd2:int:opt;"
             "isse:int:opt;"
+			"isavx2:int:opt;"
             , mvdegrainCreate<3>, 0, plugin);
 }
