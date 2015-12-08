@@ -316,7 +316,8 @@ void Degrain_AVX2_2x2(uint8_t *pDst, int nDstPitch, const uint8_t *pSrc, int nSr
     src     = _mm256_broadcastsi128_si256(_mm_i32gather_epi32(*(const int *)pSrc    , vindex, nSrcPitch));
     refs[0] = _mm256_broadcastsi128_si256(_mm_i32gather_epi32(*(const int *)pRefs[0], vindex, nRefPitches[0]));
     refs[1] = _mm256_broadcastsi128_si256(_mm_i32gather_epi32(*(const int *)pRefs[1], vindex, nRefPitches[1]));
-    {
+    if (radius > 1)
+	{
         refs[2] = _mm256_broadcastsi128_si256(_mm_i32gather_epi32(*(const int *)pRefs[2], vindex, nRefPitches[2]));
         refs[3] = _mm256_broadcastsi128_si256(_mm_i32gather_epi32(*(const int *)pRefs[3], vindex, nRefPitches[3]));
     }
@@ -403,7 +404,8 @@ void Degrain_AVX2_2x4(uint8_t *pDst, int nDstPitch, const uint8_t *pSrc, int nSr
     src     = _mm256_broadcastsi128_si256(_mm_i32gather_epi32(*(const int *)pSrc    , vindex, nSrcPitch));
     refs[0] = _mm256_broadcastsi128_si256(_mm_i32gather_epi32(*(const int *)pRefs[0], vindex, nRefPitches[0]));
     refs[1] = _mm256_broadcastsi128_si256(_mm_i32gather_epi32(*(const int *)pRefs[1], vindex, nRefPitches[1]));
-    {
+    if (radius > 1)
+	{
         refs[2] = _mm256_broadcastsi128_si256(_mm_i32gather_epi32(*(const int *)pRefs[2], vindex, nRefPitches[2]));
         refs[3] = _mm256_broadcastsi128_si256(_mm_i32gather_epi32(*(const int *)pRefs[3], vindex, nRefPitches[3]));
     }
