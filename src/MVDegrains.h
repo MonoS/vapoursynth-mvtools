@@ -161,6 +161,12 @@ void Degrain_sse2(uint8_t *pDst, int nDstPitch, const uint8_t *pSrc, int nSrcPit
     }
 }
 
+__forceinline __m256i _mm256_loadl_epi128(__m128i const * a)
+{
+    static __m128i const zero = _mm_setzero_si128();
+    return _mm256_inserti128_si256(_mm256_castsi128_si256(_mm_loadu_si128(a)), zero, 1);
+}
+
 template <int radius, int blockWidth, int blockHeight>
 void Degrain_AVX2(uint8_t *pDst, int nDstPitch, const uint8_t *pSrc, int nSrcPitch, const uint8_t **pRefs, const int *nRefPitches, int WSrc, const int *WRefs)
 {
