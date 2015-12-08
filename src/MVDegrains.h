@@ -5,6 +5,8 @@
 #include <cstring>
 
 #include <emmintrin.h>
+#include <immintrin.h>
+#include <avx2intrin.h>
 
 #include "MVFrame.h"
 
