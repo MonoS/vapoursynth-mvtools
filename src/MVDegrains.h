@@ -297,7 +297,7 @@ void Degrain_AVX2_2x2(uint8_t *pDst, int nDstPitch, const uint8_t *pSrc, int nSr
 {
     __m256i zero = _mm256_set1_epi32(0);
     __m128i vindex = _mm_set_epi32(0, 1, 0, 1);
-	__m256i wsrc = _mm256_set1_epi32(WSrc);
+    __m256i wsrc = _mm256_set1_epi32(WSrc);
 
     __m256i wrefs[6];
     wrefs[0] = _mm256_set1_epi32(WRefs[0]);
@@ -466,8 +466,8 @@ void Degrain_AVX2_2x4(uint8_t *pDst, int nDstPitch, const uint8_t *pSrc, int nSr
 
     *(int *)pDst = _mm256_extract_epi32(accum, 0);
     *(int *)(pDst + nDstPitch) = _mm256_extract_epi32(accum, 1);
-    *(int *)(pDst + nDstPitch* 2) = _mm256_extract_epi32(accum, 2);
-    *(int *)(pDst + nDstPitch* 3) = _mm256_extract_epi32(accum, 3);
+    *(int *)(pDst + nDstPitch * 2) = _mm256_extract_epi32(accum, 2);
+    *(int *)(pDst + nDstPitch * 3) = _mm256_extract_epi32(accum, 3);
 }
 
 
