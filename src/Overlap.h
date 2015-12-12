@@ -168,4 +168,34 @@ void ToPixels_AVX2_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pSrc8, in
     }
 }
 
+void ToPixels_SSE2_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pSrc8, int nSrcPitch, int nWidth, int nHeight, int bitsPerSample)
+{
+	static __m128i const sixteen  = _mm_set1_epi32(16);
+	static __m128i const five     = _mm_set1_epi64x(5);
+    for (int h=0; h<nHeight; h++)
+    {
+		const uint32_t *pSrc = (const uint32_t *)pSrc8;
+        uint16_t *pDst = (uint16_t *)pDst8;
+
+        nWidth_8 = (nWidth & ~7);
+        for (int i = 0; i < nWidth_8; i += 8)
+        {
+            __m128i src_1 = _mm_lddqu_si128((__m128i* )(pSrc + i));
+            __m128i src_2 = _mm_lddqu_si128((__m128i* )(pSrc + i + 4));
+
+			__m128i a1 = _mm_srl_epi32(_mm_add_epi32(src_1, sixteen), five);
+			__m128i a2 = _mm_srl_epi32(_mm_add_epi32(src_2, sixteen), five);
+			_mm_storeu_si128((__m128i* )(pDst + i), _mm_packus_epi32(a1, a2));
+        }
+
+        for (int i = nWidth_8; nWidth_8 < nWidth; i++)
+        {
+            int a = (pSrc[i] + 16)>>5;
+            pDst[i] = min(pixelMax, a);
+        }
+        pDst8 += nDstPitch;
+        pSrc8 += nSrcPitch;
+    }
+}
+
 #endif
