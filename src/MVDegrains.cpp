@@ -510,8 +510,20 @@ static void selectFunctions(MVDegrainData *d) {
         degs[32][32] = d->isavx2 ? Degrain_AVX2<radius, 32, 32> : Degrain_C<radius, 32,32, uint16_t>;
 
         d->LimitChanges = LimitChanges_C<uint16_t>;
-
-        d->ToPixels = ToPixels<uint32_t, uint16_t>;
+		
+		if(d->isavx2)
+		{
+			d->ToPixels = ToPixels_AVX2_16bit;
+		}
+		else if (d->isse)
+		{
+			d->ToPixels = ToPixels_SSE2_16bit;
+		}
+		else
+		{
+			d->ToPixels = ToPixels<uint32_t, uint16_t>;
+		}
+        
     }
 
     d->OVERS[0] = overs[nBlkSizeX][nBlkSizeY];
