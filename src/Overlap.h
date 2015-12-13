@@ -77,6 +77,30 @@ void Overlaps_C(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr
     }
 }
 
+template <int blockWidth, int blockHeight>
+void Overlaps_4to32xX_SSE2_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr_t nSrcPitch, int16_t *pWin, intptr_t nWinPitch)
+{
+    // pWin from 0 to 2048
+    for (int j = 0; j < blockHeight; j++)
+    {
+        uint32_t *pDst = (uint32_t *)pDst8;
+        uint16_t const *pSrc = (uint16_t const *)pSrc8;
+
+        for (int i = 0; i < blockWidth; i += 4)
+        {
+            __m128i src = _mm_setr_epi32((int)(pSrc[i + 0]), (int)(pSrc[i + 1]), (int)(pSrc[i + 2]), (int)(pSrc[i + 3]));
+            __m128i win = _mm_setr_epi32((int)(pWin[i + 0]), (int)(pWin[i + 1]), (int)(pWin[i + 2]), (int)(pWin[i + 3]));
+            __m128i dst = _mm_loadu_si128((__m128i*)(pDst + i));
+
+            _mm_storeu_si128((__m128i *)(pDst + i), _mm_add_epi32(dst, _mm_srli_epi32(_mm_mullo_epi32(src, win), 6)));
+        }
+
+        pDst8 += nDstPitch;
+        pSrc8 += nSrcPitch;
+        pWin += nWinPitch;
+    }
+}
+
 #define MK_CFUNC(functionname) extern "C" void functionname (uint8_t *pDst, intptr_t nDstPitch, const uint8_t *pSrc, intptr_t nSrcPitch, short *pWin, intptr_t nWinPitch)
 
 MK_CFUNC(mvtools_Overlaps2x2_sse2);
