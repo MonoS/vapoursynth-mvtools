@@ -125,6 +125,31 @@ void Overlaps_4to32xX_SSE41_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint
     }
 }
 
+template <int blockWidth, int blockHeight>
+void Overlaps_8to32xX_AVX2_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr_t nSrcPitch, int16_t *pWin, intptr_t nWinPitch)
+{
+    // pWin from 0 to 2048
+    for (int j = 0; j < blockHeight; j++)
+    {
+        uint32_t *pDst = (uint32_t *)pDst8;
+        uint16_t const *pSrc = (uint16_t const *)pSrc8;
+
+        for (int i = 0; i < blockWidth; i += 8)
+        {
+            __m256i src = _mm256_cvtepu16_epi32(_mm_loadu_si128((__m128i *)(pSrc + i)));
+            __m256i win = _mm256_cvtepu16_epi32(_mm_loadu_si128((__m128i *)(pWin + i)));
+            __m256i dst = _mm256_loadu_si256((__m256i*)(pDst + i));
+
+            _mm256_storeu_si256((__m256i *)(pDst + i), _mm256_add_epi32(dst, _mm256_srli_epi32(_mm256_mullo_epi32(src, win), 6)));
+        }
+
+        pDst8 += nDstPitch;
+        pSrc8 += nSrcPitch;
+        pWin += nWinPitch;
+    }
+}
+
+
 #define MK_CFUNC(functionname) extern "C" void functionname (uint8_t *pDst, intptr_t nDstPitch, const uint8_t *pSrc, intptr_t nSrcPitch, short *pWin, intptr_t nWinPitch)
 
 MK_CFUNC(mvtools_Overlaps2x2_sse2);
