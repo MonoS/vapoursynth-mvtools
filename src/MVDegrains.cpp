@@ -452,32 +452,27 @@ static void selectFunctions(MVDegrainData *d) {
 
         d->ToPixels = ToPixels<uint16_t, uint8_t>;
     } else {
-        
-        
-		
-        d->LimitChanges = LimitChanges_C<uint16_t>;
-		
 		if(d->isavx2)
 		{
 			overs[2][2] = Overlaps_C<2,2, uint32_t, uint16_t>;
 			overs[2][4] = Overlaps_C<2,4, uint32_t, uint16_t>;
-			overs[4][2] = Overlaps_C<4,2, uint32_t, uint16_t>;
-			overs[4][4] = Overlaps_C<4,4, uint32_t, uint16_t>;
-			overs[4][8] = Overlaps_C<4,8, uint32_t, uint16_t>;
-			overs[8][1] = Overlaps_C<8,1, uint32_t, uint16_t>;
-			overs[8][2] = Overlaps_C<8,2, uint32_t, uint16_t>;
-			overs[8][4] = Overlaps_C<8,4, uint32_t, uint16_t>;
-			overs[8][8] = Overlaps_C<8,8, uint32_t, uint16_t>;
-			overs[8][16] = Overlaps_C<8,16, uint32_t, uint16_t>;
-			overs[16][1] = Overlaps_C<16,1, uint32_t, uint16_t>;
-			overs[16][2] = Overlaps_C<16,2, uint32_t, uint16_t>;
-			overs[16][4] = Overlaps_C<16,4, uint32_t, uint16_t>;
-			overs[16][8] = Overlaps_C<16,8, uint32_t, uint16_t>;
-			overs[16][16] = Overlaps_C<16,16, uint32_t, uint16_t>;
-			overs[16][32] = Overlaps_C<16,32, uint32_t, uint16_t>;
-			overs[32][8] = Overlaps_C<32,8, uint32_t, uint16_t>;
-			overs[32][16] = Overlaps_C<32,16, uint32_t, uint16_t>;
-			overs[32][32] = Overlaps_C<32,32, uint32_t, uint16_t>;
+			overs[4][2] = Overlaps_4to32xX_SSE41_16bit<4,2>;
+			overs[4][4] = Overlaps_4to32xX_SSE41_16bit<4,4>;
+			overs[4][8] = Overlaps_8to32xX_AVX2_16bit<4,8>;
+			overs[8][1] = Overlaps_8to32xX_AVX2_16bit<8,1>;
+			overs[8][2] = Overlaps_8to32xX_AVX2_16bit<8,2>;
+			overs[8][4] = Overlaps_8to32xX_AVX2_16bit<8,4>;
+			overs[8][8] = Overlaps_8to32xX_AVX2_16bit<8,8>;
+			overs[8][16] = Overlaps_8to32xX_AVX2_16bit<8,16>;
+			overs[16][1] = Overlaps_8to32xX_AVX2_16bit<16,1>;
+			overs[16][2] = Overlaps_8to32xX_AVX2_16bit<16,2>;
+			overs[16][4] = Overlaps_8to32xX_AVX2_16bit<16,4>;
+			overs[16][8] = Overlaps_8to32xX_AVX2_16bit<16,8>;
+			overs[16][16] = Overlaps_8to32xX_AVX2_16bit<16,16>;
+			overs[16][32] = Overlaps_8to32xX_AVX2_16bit<16,32>;
+			overs[32][8] = Overlaps_8to32xX_AVX2_16bit<32,8>;
+			overs[32][16] = Overlaps_8to32xX_AVX2_16bit<32,16>;
+			overs[32][32] = Overlaps_8to32xX_AVX2_16bit<32,32>;
 
 			degs[2][2] = Degrain_AVX2_2x2<radius>;
 			degs[2][4] = Degrain_AVX2_2x4<radius>;
@@ -525,23 +520,23 @@ static void selectFunctions(MVDegrainData *d) {
 			
 			overs[2][2] = Overlaps_C<2,2, uint32_t, uint16_t>;
 			overs[2][4] = Overlaps_C<2,4, uint32_t, uint16_t>;
-			overs[4][2] = Overlaps_C<4,2, uint32_t, uint16_t>;
-			overs[4][4] = Overlaps_C<4,4, uint32_t, uint16_t>;
-			overs[4][8] = Overlaps_C<4,8, uint32_t, uint16_t>;
-			overs[8][1] = Overlaps_C<8,1, uint32_t, uint16_t>;
-			overs[8][2] = Overlaps_C<8,2, uint32_t, uint16_t>;
-			overs[8][4] = Overlaps_C<8,4, uint32_t, uint16_t>;
-			overs[8][8] = Overlaps_C<8,8, uint32_t, uint16_t>;
-			overs[8][16] = Overlaps_C<8,16, uint32_t, uint16_t>;
-			overs[16][1] = Overlaps_C<16,1, uint32_t, uint16_t>;
-			overs[16][2] = Overlaps_C<16,2, uint32_t, uint16_t>;
-			overs[16][4] = Overlaps_C<16,4, uint32_t, uint16_t>;
-			overs[16][8] = Overlaps_C<16,8, uint32_t, uint16_t>;
-			overs[16][16] = Overlaps_C<16,16, uint32_t, uint16_t>;
-			overs[16][32] = Overlaps_C<16,32, uint32_t, uint16_t>;
-			overs[32][8] = Overlaps_C<32,8, uint32_t, uint16_t>;
-			overs[32][16] = Overlaps_C<32,16, uint32_t, uint16_t>;
-			overs[32][32] = Overlaps_C<32,32, uint32_t, uint16_t>;
+			overs[4][2] = Overlaps_4to32xX_SSE2_16bit<4,2>;
+			overs[4][4] = Overlaps_4to32xX_SSE2_16bit<4,4>;
+			overs[4][8] = Overlaps_4to32xX_SSE2_16bit<4,8>;
+			overs[8][1] = Overlaps_4to32xX_SSE2_16bit<8,1>;
+			overs[8][2] = Overlaps_4to32xX_SSE2_16bit<8,2>;
+			overs[8][4] = Overlaps_4to32xX_SSE2_16bit<8,4>;
+			overs[8][8] = Overlaps_4to32xX_SSE2_16bit<8,8>;
+			overs[8][16] = Overlaps_4to32xX_SSE2_16bit<8,16>;
+			overs[16][1] = Overlaps_4to32xX_SSE2_16bit<16,1>;
+			overs[16][2] = Overlaps_4to32xX_SSE2_16bit<16,2>;
+			overs[16][4] = Overlaps_4to32xX_SSE2_16bit<16,4>;
+			overs[16][8] = Overlaps_4to32xX_SSE2_16bit<16,8>;
+			overs[16][16] = Overlaps_4to32xX_SSE2_16bit<16,16>;
+			overs[16][32] = Overlaps_4to32xX_SSE2_16bit<16,32>;
+			overs[32][8] = Overlaps_4to32xX_SSE2_16bit<32,8>;
+			overs[32][16] = Overlaps_4to32xX_SSE2_16bit<32,16>;
+			overs[32][32] = Overlaps_4to32xX_SSE2_16bit<32,32>;
 			
 			d->ToPixels = ToPixels_SSE2_16bit;
 		}
@@ -590,6 +585,8 @@ static void selectFunctions(MVDegrainData *d) {
 			d->ToPixels = ToPixels<uint32_t, uint16_t>;
 		}
         
+		d->LimitChanges = LimitChanges_C<uint16_t>;
+		
     }
 
     d->OVERS[0] = overs[nBlkSizeX][nBlkSizeY];
