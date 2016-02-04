@@ -896,7 +896,7 @@ static void VS_CC mvdegrainCreate(const VSMap *in, VSMap *out, void *userData, V
 }
 
 
-void mvdegrainsRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
+extern "C" void mvdegrainsRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
     registerFunc("Degrain1",
             "clip:clip;"
             "super:clip;"
