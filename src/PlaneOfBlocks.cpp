@@ -304,10 +304,11 @@ PlaneOfBlocks::PlaneOfBlocks(int _nBlkX, int _nBlkY, int _nBlkSizeX, int _nBlkSi
     nSrcPitch_temp[0] = nBlkSizeX * bytesPerSample;
     nSrcPitch_temp[1] = nBlkSizeX / xRatioUV * bytesPerSample;
     nSrcPitch_temp[2] = nSrcPitch_temp[1];
-
-    pSrc_temp[0] = vs_aligned_malloc<uint8_t>(nBlkSizeY * nSrcPitch_temp[0], ALIGN_PLANES);
-    pSrc_temp[1] = vs_aligned_malloc<uint8_t>(nBlkSizeY / yRatioUV * nSrcPitch_temp[1], ALIGN_PLANES);
-    pSrc_temp[2] = vs_aligned_malloc<uint8_t>(nBlkSizeY / yRatioUV * nSrcPitch_temp[2], ALIGN_PLANES);
+	
+	// Four extra bytes because pixel_sad_4x4_mmx2 reads four bytes more than it should (but doesn't use them in any way).
+    pSrc_temp[0] = vs_aligned_malloc<uint8_t>(nBlkSizeY * nSrcPitch_temp[0] + 4, ALIGN_PLANES);
+    pSrc_temp[1] = vs_aligned_malloc<uint8_t>(nBlkSizeY / yRatioUV * nSrcPitch_temp[1] + 4, ALIGN_PLANES);
+    pSrc_temp[2] = vs_aligned_malloc<uint8_t>(nBlkSizeY / yRatioUV * nSrcPitch_temp[2] + 4, ALIGN_PLANES);
 #else
     dctSrc = new uint8_t[nBlkSizeY*dctpitch];
     dctRef = new uint8_t[nBlkSizeY*dctpitch];
