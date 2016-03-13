@@ -80,6 +80,8 @@ void Overlaps_C(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr
 template <int blockWidth, int blockHeight>
 void Overlaps_4to32xX_SSE2_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr_t nSrcPitch, int16_t *pWin, intptr_t nWinPitch)
 {
+	__m128i zero = _mm_setzero_si128();
+
     // pWin from 0 to 2048
     for (int j = 0; j < blockHeight; j++)
     {
@@ -88,8 +90,8 @@ void Overlaps_4to32xX_SSE2_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint8
 
         for (int i = 0; i < blockWidth; i += 4)
         {
-            __m128i src = _mm_setr_epi32((int)(pSrc[i + 0]), (int)(pSrc[i + 1]), (int)(pSrc[i + 2]), (int)(pSrc[i + 3]));
-            __m128i win = _mm_setr_epi32((int)(pWin[i + 0]), (int)(pWin[i + 1]), (int)(pWin[i + 2]), (int)(pWin[i + 3]));
+			__m128i src =_mm_unpacklo_epi16(_mm_loadl_epi64((__m128i*)(pSrc + i)), zero);
+			__m128i win =_mm_unpacklo_epi16(_mm_loadl_epi64((__m128i*)(pWin + i)), zero);
             __m128i dst = _mm_loadu_si128((__m128i*)(pDst + i));
 
             _mm_storeu_si128((__m128i *)(pDst + i), _mm_add_epi32(dst, _mm_srli_epi32(_mm_mullo_epi32(src, win), 6)));
@@ -101,6 +103,7 @@ void Overlaps_4to32xX_SSE2_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint8
     }
 }
 
+//Still a bit faster than the the SSE2 because cvt has a throughput of 0.5 instead of 1 for unpacklo
 template <int blockWidth, int blockHeight>
 void Overlaps_4to32xX_SSE41_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr_t nSrcPitch, int16_t *pWin, intptr_t nWinPitch)
 {
