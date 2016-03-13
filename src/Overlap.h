@@ -129,6 +129,43 @@ void Overlaps_4to32xX_SSE41_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint
 }
 
 template <int blockWidth, int blockHeight>
+void Overlaps_4xX_AVX2_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr_t nSrcPitch, int16_t *pWin, intptr_t nWinPitch)
+{
+    // pWin from 0 to 2048
+    for (int j = 0; j < blockHeight; j += 2)
+    {
+        uint32_t *pDst = (uint32_t *)pDst8;
+        uint16_t const *pSrc = (uint16_t const *)pSrc8;
+
+		__m128i src_128 = _mm_setzero_si128();
+		_mm_insert_epi64(src_128, *(uint64_t*)(pSrc)            , 0);
+		_mm_insert_epi64(src_128, *(uint64_t*)(pSrc + nSrcPitch), 1);
+
+		__m256i src = _mm256_cvtepu16_epi32(src_128);
+
+		__m128i win_128 = _mm_setzero_si128();
+		_mm_insert_epi64(win_128, *(uint64_t*)(pWin)            , 0);
+		_mm_insert_epi64(win_128, *(uint64_t*)(pWin + nWinPitch), 1);
+
+		__m256i win = _mm256_cvtepu16_epi32(win_128);
+
+		__m256i dst = _mm256_loadu2_m128i((__m128i*)(pDst), (__m128i*)(pDst + nDstPitch));
+
+		__m256i res = _mm256_add_epi32(dst, _mm256_srli_epi32(_mm256_mullo_epi32(src, win), 6));
+
+		__m128i res_0 = _mm256_extracti128_si256(res, 0);
+		__m128i res_1 = _mm256_extracti128_si256(res, 1);
+
+		_mm_storeu_si128((__m128i *)(pDst)            , res_0);
+		_mm_storeu_si128((__m128i *)(pDst + nDstPitch), res_1);
+
+        pDst8 += nDstPitch*2;
+        pSrc8 += nSrcPitch*2;
+        pWin += nWinPitch*2;
+    }
+}
+
+template <int blockWidth, int blockHeight>
 void Overlaps_8to32xX_AVX2_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr_t nSrcPitch, int16_t *pWin, intptr_t nWinPitch)
 {
     // pWin from 0 to 2048
