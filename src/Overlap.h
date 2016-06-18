@@ -62,6 +62,12 @@ typedef void (*OverlapsFunction)(uint8_t *pDst, intptr_t nDstPitch,
         const uint8_t *pSrc, intptr_t nSrcPitch,
         short *pWin, intptr_t nWinPitch);
 
+__inline __m256i _mm256_loadu2_m128i(__m128i *low, __m128i *high)
+{
+    return _mm256_inserti128_si256(_mm256_castsi128_si256(_mm_loadu_si128((__m128i*)low)),
+                                                          _mm_loadu_si128((__m128i*)high),1);
+
+}
 
 template <int blockWidth, int blockHeight, typename PixelType2, typename PixelType>
 void Overlaps_C(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr_t nSrcPitch, short *pWin, intptr_t nWinPitch)
@@ -246,13 +252,6 @@ void ToPixels(uint8_t *pDst8, int nDstPitch, const uint8_t *pSrc8, int nSrcPitch
         pDst8 += nDstPitch;
         pSrc8 += nSrcPitch;
     }
-}
-
-__inline __m256i _mm256_loadu2_m128i(__m128i *low, __m128i *high)
-{
-    return _mm256_inserti128_si256(_mm256_castsi128_si256(_mm_loadu_si128((__m128i*)low)),
-                                                          _mm_loadu_si128((__m128i*)high),1);
-
 }
 
 void ToPixels_AVX2_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pSrc8, int nSrcPitch, int nWidth, int nHeight, int bitsPerSample)
