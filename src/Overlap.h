@@ -3,6 +3,11 @@
 
 #include <math.h>
 #include <stdint.h>
+
+#include <emmintrin.h>
+#include <immintrin.h>
+#include <avx2intrin.h>
+
 #ifndef M_PI
 #define M_PI       3.14159265358979323846f
 #endif
