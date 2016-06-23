@@ -3,11 +3,9 @@
 
 #include <math.h>
 #include <stdint.h>
-
 #include <emmintrin.h>
 #include <immintrin.h>
 #include <avx2intrin.h>
-
 #ifndef M_PI
 #define M_PI       3.14159265358979323846f
 #endif
@@ -91,8 +89,6 @@ void Overlaps_C(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr
 template <int blockWidth, int blockHeight>
 void Overlaps_4to32xX_SSE2_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr_t nSrcPitch, int16_t *pWin, intptr_t nWinPitch)
 {
-	__m128i zero = _mm_setzero_si128();
-
     // pWin from 0 to 2048
     for (int j = 0; j < blockHeight; j++)
     {
@@ -114,7 +110,6 @@ void Overlaps_4to32xX_SSE2_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint8
     }
 }
 
-//Still a bit faster than the the SSE2 because cvt has a throughput of 0.5 instead of 1 for unpacklo
 template <int blockWidth, int blockHeight>
 void Overlaps_4to32xX_SSE41_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr_t nSrcPitch, int16_t *pWin, intptr_t nWinPitch)
 {
@@ -165,6 +160,26 @@ void Overlaps_8to32xX_AVX2_16bit(uint8_t *pDst8, intptr_t nDstPitch, const uint8
 
 
 #define MK_CFUNC(functionname) extern "C" void functionname (uint8_t *pDst, intptr_t nDstPitch, const uint8_t *pSrc, intptr_t nSrcPitch, short *pWin, intptr_t nWinPitch)
+
+MK_CFUNC(mvtools_overlaps_2x2_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_2x4_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_4x2_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_4x4_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_4x8_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_8x1_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_8x2_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_8x4_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_8x8_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_8x16_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_16x1_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_16x2_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_16x4_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_16x8_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_16x16_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_16x32_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_32x8_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_32x16_uint32_t_uint16_t_c);
+MK_CFUNC(mvtools_overlaps_32x32_uint32_t_uint16_t_c);
 
 MK_CFUNC(mvtools_Overlaps2x2_sse2);
 MK_CFUNC(mvtools_Overlaps2x4_sse2);
