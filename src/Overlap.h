@@ -239,7 +239,7 @@ static void ToPixels_AVX2_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pS
 
         }
 
-        for (int i = nWidth_16; nWidth_16 < nWidth; i++)
+        for (int i = nWidth_16; i < nWidth; i++)
         {
             int a = (pSrc[i] + 16)>>5;
             pDst[i] = min(pixelMax, a);
@@ -270,7 +270,7 @@ static void ToPixels_SSE2_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pS
 			_mm_storeu_si128((__m128i* )(pDst + i), _mm_packus_epi32(a1, a2));
         }
 
-        for (int i = nWidth_8; nWidth_8 < nWidth; i++)
+        for (int i = nWidth_8; i < nWidth; i++)
         {
             int a = (pSrc[i] + 16)>>5;
             pDst[i] = min(pixelMax, a);
