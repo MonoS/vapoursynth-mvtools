@@ -454,45 +454,45 @@ static void selectFunctions(MVDegrainData *d) {
     } else {
 		if(d->isavx2)
 		{
-			overs[2][2] = Overlaps_C<2,2, uint32_t, uint16_t>;
-			overs[2][4] = Overlaps_C<2,4, uint32_t, uint16_t>;
-			overs[4][2] = Overlaps_4to32xX_SSE41_16bit<4,2>;
-			overs[4][4] = Overlaps_4to32xX_SSE41_16bit<4,4>;
-			overs[4][8] = Overlaps_8to32xX_AVX2_16bit<4,8>;
-			overs[8][1] = Overlaps_8to32xX_AVX2_16bit<8,1>;
-			overs[8][2] = Overlaps_8to32xX_AVX2_16bit<8,2>;
-			overs[8][4] = Overlaps_8to32xX_AVX2_16bit<8,4>;
-			overs[8][8] = Overlaps_8to32xX_AVX2_16bit<8,8>;
-			overs[8][16] = Overlaps_8to32xX_AVX2_16bit<8,16>;
-			overs[16][1] = Overlaps_8to32xX_AVX2_16bit<16,1>;
-			overs[16][2] = Overlaps_8to32xX_AVX2_16bit<16,2>;
-			overs[16][4] = Overlaps_8to32xX_AVX2_16bit<16,4>;
-			overs[16][8] = Overlaps_8to32xX_AVX2_16bit<16,8>;
+			overs[2][2]   = Overlaps_C<2,2, uint32_t, uint16_t>;
+			overs[2][4]   = Overlaps_C<2,4, uint32_t, uint16_t>;
+			overs[4][2]   = Overlaps_4to32xX_SSE41_16bit<4,2>;
+			overs[4][4]   = Overlaps_4to32xX_SSE41_16bit<4,4>;
+			overs[4][8]   = Overlaps_4to32xX_SSE41_16bit<4,8>;
+			overs[8][1]   = Overlaps_8to32xX_AVX2_16bit<8,1>;
+			overs[8][2]   = Overlaps_8to32xX_AVX2_16bit<8,2>;
+			overs[8][4]   = Overlaps_8to32xX_AVX2_16bit<8,4>;
+			overs[8][8]   = Overlaps_8to32xX_AVX2_16bit<8,8>;
+			overs[8][16]  = Overlaps_8to32xX_AVX2_16bit<8,16>;
+			overs[16][1]  = Overlaps_8to32xX_AVX2_16bit<16,1>;
+			overs[16][2]  = Overlaps_8to32xX_AVX2_16bit<16,2>;
+			overs[16][4]  = Overlaps_8to32xX_AVX2_16bit<16,4>;
+			overs[16][8]  = Overlaps_8to32xX_AVX2_16bit<16,8>;
 			overs[16][16] = Overlaps_8to32xX_AVX2_16bit<16,16>;
 			overs[16][32] = Overlaps_8to32xX_AVX2_16bit<16,32>;
-			overs[32][8] = Overlaps_8to32xX_AVX2_16bit<32,8>;
+			overs[32][8]  = Overlaps_8to32xX_AVX2_16bit<32,8>;
 			overs[32][16] = Overlaps_8to32xX_AVX2_16bit<32,16>;
 			overs[32][32] = Overlaps_8to32xX_AVX2_16bit<32,32>;
-
-			degs[2][2] = Degrain_AVX2_2x2<radius>;
-			degs[2][4] = Degrain_AVX2_2x4<radius>;
-			degs[4][2] = Degrain_AVX2<radius, 4, 2>;
-			degs[4][4] = Degrain_AVX2<radius, 4, 4>; 
-			degs[4][8] = Degrain_AVX2<radius, 4, 8>; 
-			degs[8][1] = Degrain_AVX2<radius, 8, 1>; 
-			degs[8][2] = Degrain_AVX2<radius, 8, 2>; 
-			degs[8][4] = Degrain_AVX2<radius, 8, 4>; 
-			degs[8][8] = Degrain_AVX2<radius, 8, 8> ; 
-			degs[8][16] = Degrain_AVX2<radius, 8, 16>;
-			degs[16][1] = Degrain_AVX2<radius, 16, 1>;
-			degs[16][2] = Degrain_AVX2<radius, 16, 2>;
-			degs[16][4] = Degrain_AVX2<radius, 16, 4>;
-			degs[16][8] = Degrain_AVX2<radius, 16, 8>;
-			degs[16][16] = Degrain_AVX2<radius, 16, 16>;
-			degs[16][32] = Degrain_AVX2<radius, 16, 32>;
-			degs[32][8] = Degrain_AVX2<radius, 32, 8>;
-			degs[32][16] = Degrain_AVX2<radius, 32, 16>;
-			degs[32][32] = Degrain_AVX2<radius, 32, 32>;
+			
+			degs[2][2]   = Degrain_C<radius, 2, 2, uint16_t>;
+			degs[2][4]   = Degrain_C<radius, 2, 4, uint16_t>;
+			degs[4][2]   = Degrain_C<radius, 4, 2, uint16_t>;
+			degs[4][4]   = Degrain_C<radius, 4, 4, uint16_t>; 
+			degs[4][8]   = Degrain_C<radius, 4, 8, uint16_t>; 
+			degs[8][1]   = Degrain_8to32xX_AVX2_16bit<radius, 8, 1>; 
+			degs[8][2]   = Degrain_8to32xX_AVX2_16bit<radius, 8, 2>; 
+			degs[8][4]   = Degrain_8to32xX_AVX2_16bit<radius, 8, 4>; 
+			degs[8][8]   = Degrain_8to32xX_AVX2_16bit<radius, 8, 8> ; 
+			degs[8][16]  = Degrain_8to32xX_AVX2_16bit<radius, 8, 16>;
+			degs[16][1]  = Degrain_8to32xX_AVX2_16bit<radius, 16, 1>;
+			degs[16][2]  = Degrain_8to32xX_AVX2_16bit<radius, 16, 2>;
+			degs[16][4]  = Degrain_8to32xX_AVX2_16bit<radius, 16, 4>;
+			degs[16][8]  = Degrain_8to32xX_AVX2_16bit<radius, 16, 8>;
+			degs[16][16] = Degrain_8to32xX_AVX2_16bit<radius, 16, 16>;
+			degs[16][32] = Degrain_8to32xX_AVX2_16bit<radius, 16, 32>;
+			degs[32][8]  = Degrain_8to32xX_AVX2_16bit<radius, 32, 8>;
+			degs[32][16] = Degrain_8to32xX_AVX2_16bit<radius, 32, 16>;
+			degs[32][32] = Degrain_8to32xX_AVX2_16bit<radius, 32, 32>;
 
 			d->ToPixels = ToPixels_AVX2_16bit;
 		}
