@@ -375,7 +375,7 @@ static void VS_CC mvrecalculateCreate(const VSMap *in, VSMap *out, void *userDat
         return;
     }
 
-    if (d.divideExtra && (d.blksize < 8 && d.blksizev < 8) ) {
+    if (d.divideExtra && (d.blksize < 8 || d.blksizev < 8) ) {
         vsapi->setError(out, "Recalculate: blksize and blksizev must be at least 8 when divide=True.");
         return;
     }

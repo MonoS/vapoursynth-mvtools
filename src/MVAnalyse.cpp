@@ -449,7 +449,7 @@ static void VS_CC mvanalyseCreate(const VSMap *in, VSMap *out, void *userData, V
         return;
     }
 
-    if (d.divideExtra && (d.blksize < 8 && d.blksizev < 8) ) {
+    if (d.divideExtra && (d.blksize < 8 || d.blksizev < 8) ) {
         vsapi->setError(out, "Analyse: blksize and blksizev must be at least 8 when divide=True.");
         return;
     }
