@@ -313,7 +313,16 @@ void Degrain_8to32xX_AVX2_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pS
 			}
 
 			accum = _mm256_srli_epi32(accum, 8);
-
+			/*
+			|X1|X2|X3|X4|X5|X6|X7|X8|
+					   AND
+			| 1| 2| 3| 4| 5| 6| 7| 8|
+					 SHUFFLE
+			| 1| 2| 3| 4| 5| 6| 7| 8|
+			| 5| 6| 7| 8|  |  |  |  |
+					 PACKUS
+			|12|34|56|78|  |  |  |  |
+			*/
             __m256i mask = _mm256_set1_epi32(0x0000FFFF);
 
             accum = _mm256_and_si256(accum, mask);
