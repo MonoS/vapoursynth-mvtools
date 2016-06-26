@@ -286,7 +286,7 @@ void Degrain_8to32xX_AVX2_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pS
 }
 
 //This version is actually slowe than the SSE 4.1 version, use that instead
-/*
+#if 0
 __inline __m128i _mm_loadu2_m64(__m64 *low, __m64 *high)
 {
 	__m128 a;
@@ -415,7 +415,8 @@ void Degrain_4xX_AVX2_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pSrc8,
 		}
 	}
 }
-*/
+#endif
+
 //In total it should have a latency of 9 cicles and a throughput of 3 cicles
 //assuming the shift and unpack ports are different
 __inline __m128i _mm_mullo_epi32_SSE2(__m128i a, __m128i b)
