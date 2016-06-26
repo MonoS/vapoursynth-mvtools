@@ -186,7 +186,7 @@ static const VSFrameRef *VS_CC mvdegrainGetFrame(int n, int activationReason, vo
         const int nBlkX = d->bleh->nBlkX;
         const int nBlkY = d->bleh->nBlkY;
         const bool isse = d->isse;
-		const bool isavx2 = d->isavx2;
+		//const bool isavx2 = d->isavx2;
         const int YUVplanes = d->YUVplanes;
         const int dstTempPitch = d->dstTempPitch;
         const int *nWidth = d->nWidth;
