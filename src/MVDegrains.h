@@ -347,3 +347,361 @@ void Degrain_8to32xX_AVX2_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pS
 		}
 	}
 }
+
+__inline __m128i _mm_loadu2_m64(__m64 *low, __m64 *high)
+{
+	__m128 a;
+	
+	a = _mm_loadl_pi(a, low);
+	a = _mm_loadh_pi(a, high);
+	
+	return _mm_castps_si128(a);
+}
+template <int radius, int blockWidth, int blockHeight>
+void Degrain_4xX_AVX2_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pSrc8, int nSrcPitch, const uint8_t **pRefs8, const int *nRefPitches, int WSrc, const int *WRefs)
+{
+	__m256i refs[6];
+	__m256i wrefs[6];
+	__m256i wSrcX8 = _mm256_set1_epi32(WSrc);
+
+	uint16_t *pSrc16 = (uint16_t*)pSrc8;
+	ptrdiff_t nSrcPitch16 = nSrcPitch / 2;
+	uint16_t *pDst16 = (uint16_t*)pDst8;
+	ptrdiff_t nDstPitch16 = nDstPitch / 2;
+
+	uint16_t *pRefs16[6];
+	ptrdiff_t nRefPitches16[6];
+
+	pRefs16[0]       = (uint16_t*)pRefs8[0];
+	nRefPitches16[0] = nRefPitches[0] / 2;
+	wrefs[0]         = _mm256_set1_epi32(WRefs[0]);
+
+	pRefs16[1] = (uint16_t*)pRefs8[1];
+	nRefPitches16[1] = nRefPitches[1] / 2;
+	wrefs[1]         = _mm256_set1_epi32(WRefs[1]);
+	if(radius > 1)
+	{
+		pRefs16[2] = (uint16_t*)pRefs8[2];
+		nRefPitches16[2] = nRefPitches[2] / 2;
+		wrefs[2]         = _mm256_set1_epi32(WRefs[2]);
+
+		pRefs16[3] = (uint16_t*)pRefs8[3];
+		nRefPitches16[3] = nRefPitches[3] / 2;
+		wrefs[3]         = _mm256_set1_epi32(WRefs[3]);
+	}
+	if(radius > 2)
+	{
+		pRefs16[4] = (uint16_t*)pRefs8[4];
+		nRefPitches16[4] = nRefPitches[4] / 2;
+		wrefs[4]         = _mm256_set1_epi32(WRefs[4]);
+
+		pRefs16[5] = (uint16_t*)pRefs8[5];
+		nRefPitches16[5] = nRefPitches[5] / 2;
+		wrefs[5]         = _mm256_set1_epi32(WRefs[5]);
+	}
+
+	for(int y = 0; y < blockHeight; y += 2)
+	{
+		__m256i accum = _mm256_set1_epi32(128);
+
+		__m256i src = _mm256_cvtepu16_epi32(_mm_loadu2_m64((__m64*)pSrc16,(__m64*)(pSrc16 + nSrcPitch16)));
+		src         = _mm256_mullo_epi32(src, wSrcX8);
+		accum       = _mm256_add_epi32(accum, src);
+
+		refs[0] = _mm256_cvtepu16_epi32(_mm_loadu2_m64((__m64*)pRefs16[0],(__m64*)(pRefs16[0] + nRefPitches16[0])));
+		refs[0] = _mm256_mullo_epi32(refs[0], wrefs[0]);
+		accum   = _mm256_add_epi32(accum, refs[0]);
+
+		refs[1] = _mm256_cvtepu16_epi32(_mm_loadu2_m64((__m64*)pRefs16[1],(__m64*)(pRefs16[1] + nRefPitches16[1])));
+		refs[1] = _mm256_mullo_epi32(refs[1], wrefs[1]);
+		accum   = _mm256_add_epi32(accum, refs[1]);
+
+		if(radius == 2)
+		{
+			refs[2] = _mm256_cvtepu16_epi32(_mm_loadu2_m64((__m64*)pRefs16[2],(__m64*)(pRefs16[2] + nRefPitches16[2])));
+			refs[2] = _mm256_mullo_epi32(refs[2], wrefs[2]);
+			accum   = _mm256_add_epi32(accum, refs[2]);
+
+			refs[3] = _mm256_cvtepu16_epi32(_mm_loadu2_m64((__m64*)pRefs16[3],(__m64*)(pRefs16[3] + nRefPitches16[3])));
+			refs[3] = _mm256_mullo_epi32(refs[3], wrefs[3]);
+			accum   = _mm256_add_epi32(accum, refs[3]);
+		}
+		if(radius == 3)
+		{
+			refs[4] = _mm256_cvtepu16_epi32(_mm_loadu2_m64((__m64*)pRefs16[4],(__m64*)(pRefs16[4] + nRefPitches16[4])));
+			refs[4] = _mm256_mullo_epi32(refs[4], wrefs[4]);
+			accum   = _mm256_add_epi32(accum, refs[4]);
+
+			refs[5] = _mm256_cvtepu16_epi32(_mm_loadu2_m64((__m64*)pRefs16[5],(__m64*)(pRefs16[5] + nRefPitches16[5])));
+			refs[5] = _mm256_mullo_epi32(refs[5], wrefs[5]);
+			accum   = _mm256_add_epi32(accum, refs[5]);
+		}
+
+		accum = _mm256_srli_epi32(accum, 8);
+		
+		/*
+		|X1|X2|X3|X4|X5|X6|X7|X8|
+				   AND
+		| 1| 2| 3| 4| 5| 6| 7| 8|
+				 SHUFFLE
+		| 1| 2| 3| 4| 5| 6| 7| 8|
+		| 5| 6| 7| 8|  |  |  |  |
+				 PACKUS
+		|12|34|56|78|  |  |  |  |
+		*/
+		__m256i mask = _mm256_set1_epi32(0x0000FFFF);
+
+		accum = _mm256_and_si256(accum, mask);
+		__m256i shuffled = _mm256_permute4x64_epi64(accum, 0x0000000E);
+
+		__m128 extracted = _mm_castsi128_ps(_mm256_extracti128_si256(_mm256_packus_epi32(accum, shuffled), 0));
+		
+		_mm_storel_pi((__m64*) pDst16               , extracted);
+		_mm_storeh_pi((__m64*)(pDst16 + nDstPitch16), extracted);
+		
+		
+		pSrc16 += nSrcPitch16 * 2;
+		pDst16 += nDstPitch16 * 2;
+		pRefs16[0] += nRefPitches16[0] * 2;
+        pRefs16[1] += nRefPitches16[1] * 2;
+        if (radius > 1)
+        {
+            pRefs16[2] += nRefPitches16[2] * 2;
+            pRefs16[3] += nRefPitches16[3] * 2;
+        }
+        if (radius > 2)
+        {
+            pRefs16[4] += nRefPitches16[4] * 2;
+            pRefs16[5] += nRefPitches16[5] * 2;
+		}
+	}
+}
+
+//In total it should have a latency of 9 cicles and a throughput of 3 cicles
+//assuming the shift and unpack ports are different
+__inline __m128i _mm_mullo_epi32_SSE2(__m128i a, __m128i b)
+{
+	return _mm_unpacklo_epi32(
+						   	  _mm_shuffle_epi32(_mm_mul_epu32(a, b), 0x08),
+						   	  _mm_shuffle_epi32(_mm_mul_epu32(
+						   					                  _mm_srli_epi64(a, 32),
+						   					                  _mm_srli_epi64(b, 32)), 0x08));
+}
+template <int radius, int blockWidth, int blockHeight>
+void Degrain_4xX_SSE2_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pSrc8, int nSrcPitch, const uint8_t **pRefs8, const int *nRefPitches, int WSrc, const int *WRefs)
+{
+	__m128i refs[6];
+	__m128i wrefs[6];
+	__m128i wSrcX4 = _mm_set1_epi32(WSrc);
+
+	uint16_t *pSrc16 = (uint16_t*)pSrc8;
+	ptrdiff_t nSrcPitch16 = nSrcPitch / 2;
+	uint16_t *pDst16 = (uint16_t*)pDst8;
+	ptrdiff_t nDstPitch16 = nDstPitch / 2;
+
+	uint16_t *pRefs16[6];
+	ptrdiff_t nRefPitches16[6];
+
+	pRefs16[0]       = (uint16_t*)pRefs8[0];
+	nRefPitches16[0] = nRefPitches[0] / 2;
+	wrefs[0]         = _mm_set1_epi32(WRefs[0]);
+
+	pRefs16[1] = (uint16_t*)pRefs8[1];
+	nRefPitches16[1] = nRefPitches[1] / 2;
+	wrefs[1]         = _mm_set1_epi32(WRefs[1]);
+	if(radius > 1)
+	{
+		pRefs16[2] = (uint16_t*)pRefs8[2];
+		nRefPitches16[2] = nRefPitches[2] / 2;
+		wrefs[2]         = _mm_set1_epi32(WRefs[2]);
+
+		pRefs16[3] = (uint16_t*)pRefs8[3];
+		nRefPitches16[3] = nRefPitches[3] / 2;
+		wrefs[3]         = _mm_set1_epi32(WRefs[3]);
+	}
+	if(radius > 2)
+	{
+		pRefs16[4] = (uint16_t*)pRefs8[4];
+		nRefPitches16[4] = nRefPitches[4] / 2;
+		wrefs[4]         = _mm_set1_epi32(WRefs[4]);
+
+		pRefs16[5] = (uint16_t*)pRefs8[5];
+		nRefPitches16[5] = nRefPitches[5] / 2;
+		wrefs[5]         = _mm_set1_epi32(WRefs[5]);
+	}
+
+	for(int y = 0; y < blockHeight; y++)
+	{
+		for(int x = 0; x < blockWidth; x += 4)
+		{
+			__m128i accum = _mm_set1_epi32(128);
+
+			__m128i src = _mm_unpacklo_epi16(_mm_loadl_epi64((__m128i*)(pSrc16 + x)), _mm_setzero_di());
+			src         = _mm_mullo_epi32_SSE2(src, wSrcX4);
+			accum       = _mm_add_epi32(accum, src);
+
+			refs[0] = _mm_unpacklo_epi16(_mm_loadl_epi64((__m128i*)(pRefs16[0] + x)), _mm_setzero_di());
+			refs[0] = _mm_mullo_epi32_SSE2(refs[0], wrefs[0]);
+			accum   = _mm_add_epi32(accum, refs[0]);
+
+			refs[1] = _mm_unpacklo_epi16(_mm_loadl_epi64((__m128i*)(pRefs16[1] + x)), _mm_setzero_di());
+			refs[1] = _mm_mullo_epi32_SSE2(refs[1], wrefs[1]);
+			accum   = _mm_add_epi32(accum, refs[1]);
+
+			if(radius == 2)
+			{
+				refs[2] = _mm_unpacklo_epi16(_mm_loadl_epi64((__m128i*)(pRefs16[2] + x)), _mm_setzero_di());
+				refs[2] = _mm_mullo_epi32_SSE2(refs[2], wrefs[2]);
+				accum   = _mm_add_epi32(accum, refs[2]);
+
+				refs[3] = _mm_unpacklo_epi16(_mm_loadl_epi64((__m128i*)(pRefs16[3] + x)), _mm_setzero_di());
+				refs[3] = _mm_mullo_epi32_SSE2(refs[3], wrefs[3]);
+				accum   = _mm_add_epi32(accum, refs[3]);
+			}
+			if(radius == 3)
+			{
+				refs[4] = _mm_unpacklo_epi16(_mm_loadl_epi64((__m128i*)(pRefs16[4] + x)), _mm_setzero_di());
+				refs[4] = _mm_mullo_epi32_SSE2(refs[4], wrefs[4]);
+				accum   = _mm_add_epi32(accum, refs[4]);
+
+				refs[5] = _mm_unpacklo_epi16(_mm_loadl_epi64((__m128i*)(pRefs16[5] + x)), _mm_setzero_di());
+				refs[5] = _mm_mullo_epi32_SSE2(refs[5], wrefs[5]);
+				accum   = _mm_add_epi32(accum, refs[5]);
+			}
+
+			accum = _mm_srli_epi32(accum, 8);
+
+			__m128i mask = _mm_set1_epi32(0x0000FFFF);
+
+			accum = _mm_and_si128(accum, mask);
+
+			accum = _mm_shufflelo_epi16(accum, 0x8);
+			accum = _mm_shufflehi_epi16(accum, 0x8);
+			accum = _mm_shuffle_epi32(accum, 0x8);
+			_mm_store_sd((double*)(pDst16 + x), _mm_castsi128_pd(accum));
+		}
+
+		pSrc16 += nSrcPitch16;
+		pDst16 += nDstPitch16;
+		pRefs16[0] += nRefPitches16[0];
+        pRefs16[1] += nRefPitches16[1];
+        if (radius > 1)
+        {
+            pRefs16[2] += nRefPitches16[2];
+            pRefs16[3] += nRefPitches16[3];
+        }
+        if (radius > 2)
+        {
+            pRefs16[4] += nRefPitches16[4];
+            pRefs16[5] += nRefPitches16[5];
+		}
+	}
+}
+
+template <int radius, int blockWidth, int blockHeight>
+void Degrain_4xX_SSE41_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pSrc8, int nSrcPitch, const uint8_t **pRefs8, const int *nRefPitches, int WSrc, const int *WRefs)
+{
+	__m128i refs[6];
+	__m128i wrefs[6];
+	__m128i wSrcX4 = _mm_set1_epi32(WSrc);
+
+	uint16_t *pSrc16 = (uint16_t*)pSrc8;
+	ptrdiff_t nSrcPitch16 = nSrcPitch / 2;
+	uint16_t *pDst16 = (uint16_t*)pDst8;
+	ptrdiff_t nDstPitch16 = nDstPitch / 2;
+
+	uint16_t *pRefs16[6];
+	ptrdiff_t nRefPitches16[6];
+
+	pRefs16[0]       = (uint16_t*)pRefs8[0];
+	nRefPitches16[0] = nRefPitches[0] / 2;
+	wrefs[0]         = _mm_set1_epi32(WRefs[0]);
+
+	pRefs16[1] = (uint16_t*)pRefs8[1];
+	nRefPitches16[1] = nRefPitches[1] / 2;
+	wrefs[1]         = _mm_set1_epi32(WRefs[1]);
+	if(radius > 1)
+	{
+		pRefs16[2] = (uint16_t*)pRefs8[2];
+		nRefPitches16[2] = nRefPitches[2] / 2;
+		wrefs[2]         = _mm_set1_epi32(WRefs[2]);
+
+		pRefs16[3] = (uint16_t*)pRefs8[3];
+		nRefPitches16[3] = nRefPitches[3] / 2;
+		wrefs[3]         = _mm_set1_epi32(WRefs[3]);
+	}
+	if(radius > 2)
+	{
+		pRefs16[4] = (uint16_t*)pRefs8[4];
+		nRefPitches16[4] = nRefPitches[4] / 2;
+		wrefs[4]         = _mm_set1_epi32(WRefs[4]);
+
+		pRefs16[5] = (uint16_t*)pRefs8[5];
+		nRefPitches16[5] = nRefPitches[5] / 2;
+		wrefs[5]         = _mm_set1_epi32(WRefs[5]);
+	}
+
+	for(int y = 0; y < blockHeight; y++)
+	{
+		for(int x = 0; x < blockWidth; x += 4)
+		{
+			__m128i accum = _mm_set1_epi32(128);
+
+			__m128i src = _mm_cvtepu16_epi32(_mm_loadl_epi64((__m128i*)(pSrc16 + x)));
+			src         = _mm_mullo_epi32(src, wSrcX4);
+			accum       = _mm_add_epi32(accum, src);
+
+			refs[0] = _mm_cvtepu16_epi32(_mm_loadl_epi64((__m128i*)(pRefs16[0] + x)));
+			refs[0] = _mm_mullo_epi32(refs[0], wrefs[0]);
+			accum   = _mm_add_epi32(accum, refs[0]);
+
+			refs[1] = _mm_cvtepu16_epi32(_mm_loadl_epi64((__m128i*)(pRefs16[1] + x)));
+			refs[1] = _mm_mullo_epi32(refs[1], wrefs[1]);
+			accum   = _mm_add_epi32(accum, refs[1]);
+
+			if(radius == 2)
+			{
+				refs[2] = _mm_cvtepu16_epi32(_mm_loadl_epi64((__m128i*)(pRefs16[2] + x)));
+				refs[2] = _mm_mullo_epi32(refs[2], wrefs[2]);
+				accum   = _mm_add_epi32(accum, refs[2]);
+
+				refs[3] = _mm_cvtepu16_epi32(_mm_loadl_epi64((__m128i*)(pRefs16[3] + x)));
+				refs[3] = _mm_mullo_epi32(refs[3], wrefs[3]);
+				accum   = _mm_add_epi32(accum, refs[3]);
+			}
+			if(radius == 3)
+			{
+				refs[4] = _mm_cvtepu16_epi32(_mm_loadl_epi64((__m128i*)(pRefs16[4] + x)));
+				refs[4] = _mm_mullo_epi32(refs[4], wrefs[4]);
+				accum   = _mm_add_epi32(accum, refs[4]);
+
+				refs[5] = _mm_cvtepu16_epi32(_mm_loadl_epi64((__m128i*)(pRefs16[5] + x)));
+				refs[5] = _mm_mullo_epi32(refs[5], wrefs[5]);
+				accum   = _mm_add_epi32(accum, refs[5]);
+			}
+
+			accum = _mm_srli_epi32(accum, 8);
+
+            __m128i mask = _mm_set1_epi32(0x0000FFFF);
+
+			accum = _mm_and_si128(accum, mask);
+
+			_mm_store_sd((double*)(pDst16 + x), _mm_castsi128_pd(_mm_packus_epi32(accum, _mm_setzero_si128())));
+		}
+
+		pSrc16 += nSrcPitch16;
+		pDst16 += nDstPitch16;
+		pRefs16[0] += nRefPitches16[0];
+        pRefs16[1] += nRefPitches16[1];
+        if (radius > 1)
+        {
+            pRefs16[2] += nRefPitches16[2];
+            pRefs16[3] += nRefPitches16[3];
+        }
+        if (radius > 2)
+        {
+            pRefs16[4] += nRefPitches16[4];
+            pRefs16[5] += nRefPitches16[5];
+		}
+	}
+}
