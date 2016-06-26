@@ -697,7 +697,7 @@ static void VS_CC mvflowblurCreate(const VSMap *in, VSMap *out, void *userData, 
 }
 
 
-extern "C" void mvflowblurRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
+void mvflowblurRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
     registerFunc("FlowBlur",
             "clip:clip;"
             "super:clip;"

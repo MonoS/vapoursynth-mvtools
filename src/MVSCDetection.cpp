@@ -129,7 +129,7 @@ static void VS_CC mvscdetectionCreate(const VSMap *in, VSMap *out, void *userDat
 }
 
 
-extern "C" void mvscdetectionRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
+void mvscdetectionRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
     registerFunc("SCDetection",
             "clip:clip;"
             "vectors:clip;"

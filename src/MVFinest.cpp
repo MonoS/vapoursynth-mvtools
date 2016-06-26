@@ -230,7 +230,7 @@ static void VS_CC mvfinestCreate(const VSMap *in, VSMap *out, void *userData, VS
 }
 
 
-extern "C" void mvfinestRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
+void mvfinestRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
     registerFunc("Finest",
             "super:clip;"
             "isse:int:opt;"

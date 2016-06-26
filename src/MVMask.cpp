@@ -345,7 +345,7 @@ static void VS_CC mvmaskCreate(const VSMap *in, VSMap *out, void *userData, VSCo
 }
 
 
-extern "C" void mvmaskRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
+void mvmaskRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
     registerFunc("Mask",
             "clip:clip;"
             "vectors:clip;"

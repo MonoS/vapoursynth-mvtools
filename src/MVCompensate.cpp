@@ -757,7 +757,7 @@ static void VS_CC mvcompensateCreate(const VSMap *in, VSMap *out, void *userData
 }
 
 
-extern "C" void mvcompensateRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
+void mvcompensateRegister(VSRegisterFunction registerFunc, VSPlugin *plugin) {
     registerFunc("Compensate",
             "clip:clip;"
             "super:clip;"
