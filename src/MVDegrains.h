@@ -167,69 +167,6 @@ __forceinline __m256i _mm256_loadl_epi128(__m128i const * a)
     return _mm256_inserti128_si256(_mm256_castsi128_si256(_mm_loadu_si128(a)), zero, 1);
 }
 
-typedef void (*LimitFunction)(uint8_t *pDst, intptr_t nDstPitch, const uint8_t *pSrc, intptr_t nSrcPitch, intptr_t nWidth, intptr_t nHeight, intptr_t nLimit);
-
-
-extern "C" void mvtools_LimitChanges_sse2(uint8_t *pDst, intptr_t nDstPitch, const uint8_t *pSrc, intptr_t nSrcPitch, intptr_t nWidth, intptr_t nHeight, intptr_t nLimit);
-
-
-template <typename PixelType>
-static void LimitChanges_C(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr_t nSrcPitch, intptr_t nWidth, intptr_t nHeight, intptr_t nLimit) {
-    for (int h = 0; h < nHeight; h++) {
-        for (int i = 0; i < nWidth; i++) {
-            const PixelType *pSrc = (const PixelType *)pSrc8;
-            PixelType *pDst = (PixelType *)pDst8;
-
-            pDst[i] = (PixelType)VSMIN(VSMAX(pDst[i], (pSrc[i] - nLimit)), (pSrc[i] + nLimit));
-        }
-        pDst8 += nDstPitch;
-        pSrc8 += nSrcPitch;
-    }
-}
-
-
-inline int DegrainWeight(int64_t thSAD, int64_t blockSAD) {
-    if (blockSAD >= thSAD)
-        return 0;
-
-    return int((thSAD - blockSAD) * (thSAD + blockSAD) * 256 / (thSAD * thSAD + blockSAD * blockSAD));
-}
-
-
-inline void useBlock(const uint8_t * &p, int &np, int &WRef, bool isUsable, const MVClipBalls *mvclip, int i, const MVPlane *pPlane, const uint8_t **pSrcCur, int xx, const int *nSrcPitch, int nLogPel, int plane, int xSubUV, int ySubUV, const int *thSAD) {
-    if (isUsable) {
-        const FakeBlockData &block = mvclip->GetBlock(0, i);
-        int blx = (block.GetX() << nLogPel) + block.GetMV().x;
-        int bly = (block.GetY() << nLogPel) + block.GetMV().y;
-        p = pPlane->GetPointer(plane ? blx >> xSubUV : blx, plane ? bly >> ySubUV : bly);
-        np = pPlane->GetPitch();
-        int blockSAD = block.GetSAD();
-        WRef = DegrainWeight(thSAD[plane], blockSAD);
-    } else {
-        p = pSrcCur[plane] + xx;
-        np = nSrcPitch[plane];
-        WRef = 0;
-    }
-}
-
-
-template <int radius>
-static inline void normaliseWeights(int &WSrc, int *WRefs) {
-    // normalise weights to 256
-    WSrc = 256;
-    int WSum = WSrc + 1;
-    for (int r = 0; r < radius*2; r++)
-        WSum += WRefs[r];
-
-    for (int r = 0; r < radius*2; r++) {
-        WRefs[r] = WRefs[r] * 256 / WSum;
-        WSrc -= WRefs[r];
-    }
-}
-
-
-#endif
-
 template <int radius, int blockWidth, int blockHeight>
 void Degrain_8to32xX_AVX2_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pSrc8, int nSrcPitch, const uint8_t **pRefs8, const int *nRefPitches, int WSrc, const int *WRefs)
 {
@@ -705,3 +642,66 @@ void Degrain_4xX_SSE41_16bit(uint8_t *pDst8, int nDstPitch, const uint8_t *pSrc8
 		}
 	}
 }
+
+typedef void (*LimitFunction)(uint8_t *pDst, intptr_t nDstPitch, const uint8_t *pSrc, intptr_t nSrcPitch, intptr_t nWidth, intptr_t nHeight, intptr_t nLimit);
+
+
+extern "C" void mvtools_LimitChanges_sse2(uint8_t *pDst, intptr_t nDstPitch, const uint8_t *pSrc, intptr_t nSrcPitch, intptr_t nWidth, intptr_t nHeight, intptr_t nLimit);
+
+
+template <typename PixelType>
+static void LimitChanges_C(uint8_t *pDst8, intptr_t nDstPitch, const uint8_t *pSrc8, intptr_t nSrcPitch, intptr_t nWidth, intptr_t nHeight, intptr_t nLimit) {
+    for (int h = 0; h < nHeight; h++) {
+        for (int i = 0; i < nWidth; i++) {
+            const PixelType *pSrc = (const PixelType *)pSrc8;
+            PixelType *pDst = (PixelType *)pDst8;
+
+            pDst[i] = (PixelType)VSMIN(VSMAX(pDst[i], (pSrc[i] - nLimit)), (pSrc[i] + nLimit));
+        }
+        pDst8 += nDstPitch;
+        pSrc8 += nSrcPitch;
+    }
+}
+
+
+inline int DegrainWeight(int64_t thSAD, int64_t blockSAD) {
+    if (blockSAD >= thSAD)
+        return 0;
+
+    return int((thSAD - blockSAD) * (thSAD + blockSAD) * 256 / (thSAD * thSAD + blockSAD * blockSAD));
+}
+
+
+inline void useBlock(const uint8_t * &p, int &np, int &WRef, bool isUsable, const MVClipBalls *mvclip, int i, const MVPlane *pPlane, const uint8_t **pSrcCur, int xx, const int *nSrcPitch, int nLogPel, int plane, int xSubUV, int ySubUV, const int *thSAD) {
+    if (isUsable) {
+        const FakeBlockData &block = mvclip->GetBlock(0, i);
+        int blx = (block.GetX() << nLogPel) + block.GetMV().x;
+        int bly = (block.GetY() << nLogPel) + block.GetMV().y;
+        p = pPlane->GetPointer(plane ? blx >> xSubUV : blx, plane ? bly >> ySubUV : bly);
+        np = pPlane->GetPitch();
+        int blockSAD = block.GetSAD();
+        WRef = DegrainWeight(thSAD[plane], blockSAD);
+    } else {
+        p = pSrcCur[plane] + xx;
+        np = nSrcPitch[plane];
+        WRef = 0;
+    }
+}
+
+
+template <int radius>
+static inline void normaliseWeights(int &WSrc, int *WRefs) {
+    // normalise weights to 256
+    WSrc = 256;
+    int WSum = WSrc + 1;
+    for (int r = 0; r < radius*2; r++)
+        WSum += WRefs[r];
+
+    for (int r = 0; r < radius*2; r++) {
+        WRefs[r] = WRefs[r] * 256 / WSum;
+        WSrc -= WRefs[r];
+    }
+}
+
+
+#endif
