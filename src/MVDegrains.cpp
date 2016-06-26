@@ -473,12 +473,12 @@ static void selectFunctions(MVDegrainData *d) {
 			overs[32][8]  = Overlaps_8to32xX_AVX2_16bit<32,8>;
 			overs[32][16] = Overlaps_8to32xX_AVX2_16bit<32,16>;
 			overs[32][32] = Overlaps_8to32xX_AVX2_16bit<32,32>;
-			
+
 			degs[2][2]   = Degrain_C<radius, 2, 2, uint16_t>;
 			degs[2][4]   = Degrain_C<radius, 2, 4, uint16_t>;
-			degs[4][2]   = Degrain_C<radius, 4, 2, uint16_t>;
-			degs[4][4]   = Degrain_C<radius, 4, 4, uint16_t>; 
-			degs[4][8]   = Degrain_C<radius, 4, 8, uint16_t>; 
+			degs[4][2]   = Degrain_4xX_SSE41_16bit<radius, 4, 2>;
+			degs[4][4]   = Degrain_4xX_SSE41_16bit<radius, 4, 4>; 
+			degs[4][8]   = Degrain_4xX_SSE41_16bit<radius, 4, 8>; 
 			degs[8][1]   = Degrain_8to32xX_AVX2_16bit<radius, 8, 1>; 
 			degs[8][2]   = Degrain_8to32xX_AVX2_16bit<radius, 8, 2>; 
 			degs[8][4]   = Degrain_8to32xX_AVX2_16bit<radius, 8, 4>; 
@@ -500,23 +500,23 @@ static void selectFunctions(MVDegrainData *d) {
 		{
 			degs[2][2] = Degrain_C<radius, 2,2, uint16_t>;
 			degs[2][4] = Degrain_C<radius, 2,4, uint16_t>;
-			degs[4][2] = Degrain_C<radius, 4,2, uint16_t>;
-			degs[4][4] = Degrain_C<radius, 4,4, uint16_t>;
-			degs[4][8] = Degrain_C<radius, 4,8, uint16_t>;
-			degs[8][1] = Degrain_C<radius, 8,1, uint16_t>;
-			degs[8][2] = Degrain_C<radius, 8,2, uint16_t>;
-			degs[8][4] = Degrain_C<radius, 8,4, uint16_t>;
-			degs[8][8] = Degrain_C<radius, 8,8, uint16_t>;
-			degs[8][16] = Degrain_C<radius, 8,16, uint16_t>;
-			degs[16][1] = Degrain_C<radius, 16,1, uint16_t>;
-			degs[16][2] = Degrain_C<radius, 16,2, uint16_t>;
-			degs[16][4] = Degrain_C<radius, 16,4, uint16_t>;
-			degs[16][8] = Degrain_C<radius, 16,8, uint16_t>;
-			degs[16][16] = Degrain_C<radius, 16,16, uint16_t>;
-			degs[16][32] = Degrain_C<radius, 16,32, uint16_t>;
-			degs[32][8] = Degrain_C<radius, 32,8, uint16_t>;
-			degs[32][16] = Degrain_C<radius, 32,16, uint16_t>;
-			degs[32][32] = Degrain_C<radius, 32,32, uint16_t>;
+			degs[4][2] = Degrain_4xX_SSE2_16bit<radius, 4,2>;
+			degs[4][4] = Degrain_4xX_SSE2_16bit<radius, 4,4>;
+			degs[4][8] = Degrain_4xX_SSE2_16bit<radius, 4,8>;
+			degs[8][1] = Degrain_4xX_SSE2_16bit<radius, 8,1>;
+			degs[8][2] = Degrain_4xX_SSE2_16bit<radius, 8,2>;
+			degs[8][4] = Degrain_4xX_SSE2_16bit<radius, 8,4>;
+			degs[8][8] = Degrain_4xX_SSE2_16bit<radius, 8,8>;
+			degs[8][16] = Degrain_4xX_SSE2_16bit<radius, 8,16>;
+			degs[16][1] = Degrain_4xX_SSE2_16bit<radius, 16,1>;
+			degs[16][2] = Degrain_4xX_SSE2_16bit<radius, 16,2>;
+			degs[16][4] = Degrain_4xX_SSE2_16bit<radius, 16,4>;
+			degs[16][8] = Degrain_4xX_SSE2_16bit<radius, 16,8>;
+			degs[16][16] = Degrain_4xX_SSE2_16bit<radius, 16,16>;
+			degs[16][32] = Degrain_4xX_SSE2_16bit<radius, 16,32>;
+			degs[32][8] = Degrain_4xX_SSE2_16bit<radius, 32,8>;
+			degs[32][16] = Degrain_4xX_SSE2_16bit<radius, 32,16>;
+			degs[32][32] = Degrain_4xX_SSE2_16bit<radius, 32,32>;
 			
 			overs[2][2] = Overlaps_C<2,2, uint32_t, uint16_t>;
 			overs[2][4] = Overlaps_C<2,4, uint32_t, uint16_t>;
