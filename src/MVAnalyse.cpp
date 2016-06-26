@@ -423,7 +423,11 @@ static void VS_CC mvanalyseCreate(const VSMap *in, VSMap *out, void *userData, V
 
 
     d.analysisData.nDeltaFrame = d.delta;
-
+	
+	if (d.plevel < 0 || d.plevel > 2) {
+		vsapi->setError(out, "Analyse: plevel must be between 0 and 2 (inclusive).");
+		return;
+	}
 
     if (d.pnew < 0 || d.pnew > 256) {
         vsapi->setError(out, "Analyse: pnew must be between 0 and 256 (inclusive).");
