@@ -53,6 +53,10 @@ DCTFFTW::DCTFFTW(int _sizex, int _sizey, int _dctmode, int _bitsPerSample) :
 
 DCTFFTW::~DCTFFTW()
 {
+	{
+		std::lock_guard<std::mutex> guard(g_fftw_plans_mutex);
+		fftwf_destroy_plan(dct->dctplan);
+	}
     fftwf_destroy_plan(dctplan);
     fftwf_free(fSrc);
     fftwf_free(fSrcDCT);
